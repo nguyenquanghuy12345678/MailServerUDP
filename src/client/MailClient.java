@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class MailClient {
-    private static final String SERVER_IP = "192.168.56.101";
+    private static final String SERVER_IP = "localhost";
     private static final int SERVER_PORT = 9999;
     private static final DateTimeFormatter timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

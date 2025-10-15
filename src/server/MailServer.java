@@ -78,6 +78,7 @@ public class MailServer extends JFrame {
                     String password = parts[2].trim();
                     boolean success = authenticateUser(username, password);
                     sendResponse(success ? "LOGIN_SUCCESS" : "LOGIN_FAILED", address, port);
+                    logToFile("LOGIN_ATTEMPT", "Username: " + username + " Result: " + (success ? "SUCCESS" : "FAILED"));
                 } else {
                     log("⚠️ Invalid LOGIN format.");
                 }
@@ -121,16 +122,25 @@ public class MailServer extends JFrame {
         if (!userDir.exists()) {
             userDir.mkdirs();
             File welcomeFile = new File(userDir, "new_email.txt");
+            LocalDateTime now = LocalDateTime.now();
+            String timestamp = now.format(timestampFormatter);
+            
             try (FileWriter fw = new FileWriter(welcomeFile)) {
+                fw.write("=== WELCOME MESSAGE ===\n");
+                fw.write("Account created: " + timestamp + "\n");
+                fw.write("Username: " + username + "\n");
+                fw.write("Registration date: " + timestamp + "\n\n");
                 fw.write("Thank you for using this service.\n");
                 fw.write("We hope that you will feel comfortable using it.\n");
-                fw.write("Enjoy your experience, " + username + "!\n");
+                fw.write("Enjoy your experience, " + username + "!\n\n");
+                fw.write("Account creation completed at: " + timestamp + "\n");
             }
             
             // Store user credentials
             users.put(username, password);
             saveUsers();
             log("🟢 Account created: " + username);
+            logToFile("ACCOUNT_CREATED", "Username: " + username + ", Registration completed");
         }
     }
 
@@ -148,14 +158,24 @@ public class MailServer extends JFrame {
         File mailFile = new File(receiverDir, filename);
 
         try (FileWriter fw = new FileWriter(mailFile)) {
+            fw.write("=== EMAIL MESSAGE ===\n");
+            fw.write("Message ID: " + System.currentTimeMillis() + "\n");
             fw.write("From: " + sender + "\n");
             fw.write("To: " + receiver + "\n");
             fw.write("Subject: " + subject + "\n");
-            fw.write("Date: " + timestamp + "\n\n");
-            fw.write("Message:\n" + content + "\n");
+            fw.write("Sent Date: " + timestamp + "\n");
+            fw.write("Received Date: " + timestamp + "\n");
+            fw.write("Server Processing Time: " + timestamp + "\n");
+            fw.write("Filename: " + filename + "\n");
+            fw.write("Status: Delivered\n\n");
+            fw.write("=== MESSAGE CONTENT ===\n");
+            fw.write(content + "\n\n");
+            fw.write("=== EMAIL END ===\n");
+            fw.write("Email processed at: " + timestamp + "\n");
         }
 
         log("📨 New email saved to " + receiver + "/" + filename);
+        logToFile("EMAIL_SENT", "From: " + sender + " To: " + receiver + " Subject: " + subject + " File: " + filename);
     }
 
     private void log(String msg) {
@@ -206,8 +226,23 @@ public class MailServer extends JFrame {
             DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
             socket.send(packet);
             log("📤 Sent response: " + response);
+            logToFile("RESPONSE_SENT", "Response: " + response + " to " + address.getHostAddress());
         } catch (Exception e) {
             log("❌ Error sending response: " + e.getMessage());
+        }
+    }
+
+    private void logToFile(String action, String details) {
+        try {
+            File logFile = new File(MAIL_DIR, "server_log.txt");
+            LocalDateTime now = LocalDateTime.now();
+            String timestamp = now.format(timestampFormatter);
+            
+            try (FileWriter fw = new FileWriter(logFile, true)) {
+                fw.write("[" + timestamp + "] " + action + ": " + details + "\n");
+            }
+        } catch (Exception e) {
+            log("⚠️ Error writing to log file: " + e.getMessage());
         }
     }
 

@@ -1,6 +1,0 @@
-From: 123
-To: qsd
-Subject: hello
-
-Message:
-hi

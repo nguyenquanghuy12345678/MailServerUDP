@@ -1,0 +1,10 @@
+=== WELCOME MESSAGE ===
+Account created: 2025-10-15 10:05:37
+Username: huy
+Registration date: 2025-10-15 10:05:37
+
+Thank you for using this service.
+We hope that you will feel comfortable using it.
+Enjoy your experience, huy!
+
+Account creation completed at: 2025-10-15 10:05:37
