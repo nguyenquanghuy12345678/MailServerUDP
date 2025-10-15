@@ -3,16 +3,21 @@ package client;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class MailClient {
-    private static final String SERVER_IP = "localhost";
+    private static final String SERVER_IP = "192.168.56.101";
     private static final int SERVER_PORT = 9999;
+    private static final DateTimeFormatter timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
         DatagramSocket socket = new DatagramSocket();
 
+        String startTime = LocalDateTime.now().format(timestampFormatter);
         System.out.println("=== MAIL CLIENT (UDP) ===");
+        System.out.println("Started at: " + startTime);
         System.out.println("1. Register Account");
         System.out.println("2. Login");
         System.out.println("3. Send Email");
@@ -26,7 +31,8 @@ public class MailClient {
             System.out.print("Enter password: ");
             String password = sc.nextLine().trim();
             sendMessage(socket, "REGISTER:" + username + ":" + password);
-            System.out.println("✅ Registration request sent!");
+            String timestamp = LocalDateTime.now().format(timestampFormatter);
+            System.out.println("[" + timestamp + "] ✅ Registration request sent!");
         } 
         else if (choice == 2) {
             // Login
@@ -42,10 +48,11 @@ public class MailClient {
             socket.receive(responsePacket);
             String response = new String(responsePacket.getData(), 0, responsePacket.getLength());
             
+            String loginTimestamp = LocalDateTime.now().format(timestampFormatter);
             if ("LOGIN_SUCCESS".equals(response)) {
-                System.out.println("✅ Login successful!");
+                System.out.println("[" + loginTimestamp + "] ✅ Login successful!");
             } else {
-                System.out.println("❌ Login failed! Invalid username or password.");
+                System.out.println("[" + loginTimestamp + "] ❌ Login failed! Invalid username or password.");
             }
         }
         else if (choice == 3) {
@@ -70,12 +77,13 @@ public class MailClient {
             socket.receive(responsePacket);
             String response = new String(responsePacket.getData(), 0, responsePacket.getLength());
             
+            String emailTimestamp = LocalDateTime.now().format(timestampFormatter);
             if ("SEND_SUCCESS".equals(response)) {
-                System.out.println("✅ Email sent successfully!");
+                System.out.println("[" + emailTimestamp + "] ✅ Email sent successfully!");
             } else if ("AUTH_FAILED".equals(response)) {
-                System.out.println("❌ Authentication failed! Invalid username or password.");
+                System.out.println("[" + emailTimestamp + "] ❌ Authentication failed! Invalid username or password.");
             } else {
-                System.out.println("❌ Failed to send email.");
+                System.out.println("[" + emailTimestamp + "] ❌ Failed to send email.");
             }
         } 
         else {
@@ -87,10 +95,11 @@ public class MailClient {
     }
 
     private static void sendMessage(DatagramSocket socket, String msg) throws Exception {
+        String timestamp = LocalDateTime.now().format(timestampFormatter);
         byte[] data = msg.getBytes(StandardCharsets.UTF_8);
         InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
         DatagramPacket packet = new DatagramPacket(data, data.length, serverAddr, SERVER_PORT);
         socket.send(packet);
-        System.out.println("📤 Sent: " + msg);
+        System.out.println("[" + timestamp + "] 📤 Sent: " + msg);
     }
 }

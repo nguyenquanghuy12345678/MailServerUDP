@@ -7,6 +7,8 @@ import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class MailServer extends JFrame {
     private JTextArea logArea;
@@ -15,6 +17,8 @@ public class MailServer extends JFrame {
     private final File MAIL_DIR = new File("MailServerData");
     private final File USERS_FILE = new File("MailServerData", "users.properties");
     private Map<String, String> users = new HashMap<>();
+    private final DateTimeFormatter timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter fileFormatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     public MailServer() {
         setTitle("Mail Server (UDP)");
@@ -137,13 +141,17 @@ public class MailServer extends JFrame {
             return;
         }
 
-        String filename = "mail_from_" + sender + "_" + System.currentTimeMillis() + ".txt";
+        LocalDateTime now = LocalDateTime.now();
+        String timestamp = now.format(timestampFormatter);
+        String fileTimestamp = now.format(fileFormatter);
+        String filename = "mail_from_" + sender + "_" + fileTimestamp + ".txt";
         File mailFile = new File(receiverDir, filename);
 
         try (FileWriter fw = new FileWriter(mailFile)) {
             fw.write("From: " + sender + "\n");
             fw.write("To: " + receiver + "\n");
-            fw.write("Subject: " + subject + "\n\n");
+            fw.write("Subject: " + subject + "\n");
+            fw.write("Date: " + timestamp + "\n\n");
             fw.write("Message:\n" + content + "\n");
         }
 
@@ -151,7 +159,9 @@ public class MailServer extends JFrame {
     }
 
     private void log(String msg) {
-        SwingUtilities.invokeLater(() -> logArea.append(msg + "\n"));
+        String timestamp = LocalDateTime.now().format(timestampFormatter);
+        String logMessage = "[" + timestamp + "] " + msg;
+        SwingUtilities.invokeLater(() -> logArea.append(logMessage + "\n"));
     }
 
     private void loadUsers() {

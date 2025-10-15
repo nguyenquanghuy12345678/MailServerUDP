@@ -1,6 +1,0 @@
-From: nhat
-To: huy
-Subject: hello
-
-Message:
-hello
